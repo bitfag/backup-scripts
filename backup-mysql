@@ -1,0 +1,20 @@
+#!/bin/sh
+
+. /usr/local/bin/backup-functions
+. /etc/backup/backup.conf
+. /etc/backup/backup-mysql.conf
+
+subdir="mysql"
+
+[ -z "$password" ] && password_option="" || password_option="-p$password"
+cur_backup_dir="$backup_dir/$subdir/`date +%F-%H.%M`"
+mkdir -p "$cur_backup_dir"
+
+for db in `echo 'show databases;' |mysql -N $password_option |grep -v information_schema`
+do
+	mysqldump -u"$user" "$password_option" -h"$host" --add-drop-table \
+		--force "$db" | gzip -c >"$cur_backup_dir/$db.gz" \
+		|| fatal "failed to dump database: $db"
+done
+
+rm_old_backups "$subdir"

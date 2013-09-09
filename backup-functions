@@ -1,0 +1,9 @@
+#!/bin/sh
+
+. /usr/local/bin/shell-error
+. /etc/backup/backup-mysql.conf
+
+rm_old_backups()
+{
+find "$backup_dir/$subdir" -type d -mtime +$period_backup_store -print0 | xargs -0 rm -rf --
+}
